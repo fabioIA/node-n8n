@@ -1,48 +1,189 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# Random n8n Custom Node
 
-# n8n-nodes-starter
+## Descrição
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](https://n8n.io). It includes the node linter and other dependencies.
+Este projeto contém um conector personalizado para o n8n, chamado **Random**, que permite gerar números aleatórios usando a API do [Random.org](https://www.random.org/).  
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+O conector possui uma operação principal chamada **True Random Number Generator**, que recebe dois inputs — **Min** e **Max** — e retorna um número aleatório dentro desse intervalo.
 
-If you would like your node to be available on n8n cloud you can also [submit your node for verification](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/).
+O projeto inclui toda a infraestrutura necessária para rodar o n8n localmente usando **Docker Compose** com um banco **PostgreSQL**.
 
-## Prerequisites
+---
 
-You need the following installed on your development machine:
+## Tecnologias
 
-* [git](https://git-scm.com/downloads)
-* Node.js and npm. Minimum version Node 20. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  npm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+- Node.js 22 LTS  
+- TypeScript  
+- n8n (self-hosted)  
+- Docker & Docker Compose  
+- PostgreSQL  
+- API Random.org  
 
-## Using this starter
+---
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+## Estrutura do Projeto
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
-   ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
-   ```
-3. Run `npm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `npm run lint` to check for errors or `npm run lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
+n8n-random-node/
+  docker-compose.yml
+  custom-nodes/
+    Random/
+      Random.node.ts
+      Random.node.js
+      package.json
+      icon.svg
+  README.md
+  tsconfig.json
 
-## More information
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+---
 
-## License
+## Funcionalidades do Custom Node
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+### Random Node
+**Operação:** True Random Number Generator  
+
+**Inputs:**
+- **Min (number):** valor mínimo do intervalo  
+- **Max (number):** valor máximo do intervalo  
+
+**Retorna:**
+- Número aleatório gerado pela API do Random.org dentro do intervalo informado
+
+**Diferenciais:**
+- Nomes amigáveis e legíveis nos parâmetros  
+- Ícone SVG personalizado para o Node  
+- Código limpo e organizado seguindo as boas práticas do n8n  
+
+---
+
+## Requisitos
+
+- Node.js 22 (LTS)  
+- Docker & Docker Compose  
+- Conta de usuário com permissão para rodar containers  
+- Conexão com internet (para acessar a API do Random.org)  
+
+---
+
+## Instalação
+
+### 1. Instale Node.js 22 (LTS)
+[Download Node.js](https://nodejs.org/pt/download)
+
+### 2. Instale Docker
+[Instalação Docker](https://docs.n8n.io/hosting/installation/docker)
+
+### 3. Instale n8n globalmente
+```bash
+npm install n8n -g
+```
+
+### 4. Crie um repositório a partir do template
+
+Template https://github.com/new?template_name=n8n-nodes-starter&template_owner=n8n-io
+
+### 5. Clone seu repositório
+```bash
+git clone https://github.com/seu-usuario/random-n8n-node.git
+cd random-n8n-node
+```
+Exclua as pastas nodes e credentials do template.
+
+### 6. Configure o Docker Compose
+
+Crie o arquivo docker-compose.yml na raiz do projeto e configure o PostgreSQL e o n8n:
+```yaml
+version: "3.8"
+
+volumes:
+  db_storage:
+  n8n_storage:
+
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+      POSTGRES_DB: n8n
+    volumes:
+      - db_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U n8n -d n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    image: n8nio/n8n:1.85.4
+    restart: always
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8nuser
+      DB_POSTGRESDB_PASSWORD: n8npass
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./custom-nodes:/home/node/.n8n/custom
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
+Suba a infraestrutura
+```bash
+docker-compose up -d
+```
+### 7. Configure o Custom Node
+
+Crie a pasta do node:
+```bash
+mkdir -p custom-nodes/Random
+cd custom-nodes/Random
+```
+
+
+Inicialize o package.json:
+```bash
+npm init -y
+```
+
+Instale dependências:
+```bash
+npm install n8n-core n8n-workflow axios
+npm install -D @types/node @types/axios typescript
+```
+
+Adicione os arquivos:
+
+Random.node.ts
+icon.svg
+
+### 8. Compile e link o node
+```bash
+npx tsc
+npm run build
+npm link
+```
+
+Na raiz do projeto:
+```bash
+npm link random-n8n-node
+```
+
+### 9. Reinicie o container do n8n
+```bash
+docker restart random-n8n-node_n8n_1
+```
+
+### 10. Concluido
+Agora, acesse http://localhost:5678
+E adicione o node Random
