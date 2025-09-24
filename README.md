@@ -167,6 +167,8 @@ Adicione os arquivos:
 Random.node.ts
 icon.svg
 
+Crie seu node em Random.node.ts
+
 ### 8. Compile e link o node
 ```bash
 npx tsc
